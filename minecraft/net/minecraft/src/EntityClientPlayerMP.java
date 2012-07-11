@@ -1,5 +1,9 @@
 package net.minecraft.src;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 
@@ -32,6 +36,7 @@ public class EntityClientPlayerMP extends EntityPlayerSP
 
     /** has the client player's health been set? */
     private boolean hasSetHealth;
+    public GuiIngame gi;
 
     public EntityClientPlayerMP(Minecraft par1Minecraft, World par2World, Session par3Session, NetClientHandler par4NetClientHandler)
     {
@@ -208,14 +213,133 @@ public class EntityClientPlayerMP extends EntityPlayerSP
      */
     public void sendChatMessage(String par1Str)
     {
+    	gi = new GuiIngame(mc);
         if (mc.ingameGUI.getSentMessageList().size() == 0 || !((String)mc.ingameGUI.getSentMessageList().get(mc.ingameGUI.getSentMessageList().size() - 1)).equals(par1Str))
         {
             mc.ingameGUI.getSentMessageList().add(par1Str);
         }
-
+        if (par1Str.startsWith(".")) {
+        	try{
+        	String args[] = par1Str.split(" ");
+        	if(par1Str.startsWith(".getrep")) {
+        		mc.thePlayer.addChatMessage("§6"+args[1]+"'s MCBans Reputation: "+reputation(args[1]));
+        	}
+        	if(par1Str.startsWith(".getbans")) {
+        		mc.thePlayer.addChatMessage("§6"+args[1]+"'s MCBans Total Bans: "+totalbans(args[1]));
+        	}
+        	if(par1Str.startsWith(".getlocal")) {
+        		mc.thePlayer.addChatMessage("§6"+args[1]+"'s Local MCBans");
+        		localbans(args[1]);
+        	}
+        	if(par1Str.startsWith(".getglobal")) {
+        		mc.thePlayer.addChatMessage("§6"+args[1]+"'s Global MCBans: ");
+        		globalbans(args[1]);
+        	}
+        	} catch(ArrayIndexOutOfBoundsException e) {
+        		mc.thePlayer.addChatMessage("§6Invalid Parameters!");
+        	}
+        	return;
+        }
+       
         sendQueue.addToSendQueue(new Packet3Chat(par1Str));
     }
 
+    public String reputation(String player) {
+    	  BufferedReader reader;
+    	  String source = "";
+    	  String[] b;
+    	  String[] a;
+    	  String c;
+    	  	try {
+    	  		reader = read("http://mtiny.in/getrep.php?player="+player);
+    	  		String line = reader.readLine();
+
+    	  			while (line != null) {
+    	  					source = (source+line);
+    	  					line = reader.readLine();
+    	  			}
+    	  		return source;
+    	} catch (Exception e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}
+    	return "";
+      }
+    public String globalbans(String player) {
+    	gi = new GuiIngame(mc);
+  	  BufferedReader reader;
+  	  String source = "";
+  	  String[] b;
+  	  String[] a;
+  	  String c;
+  	  	try {
+  	  		reader = read("http://mtiny.in/getglobal.php?player="+player);
+  	  		String line = reader.readLine();
+
+  	  			while (line != null) {
+  	  					source = (source+line);
+  	  					line = reader.readLine();
+  	  				mc.thePlayer.addChatMessage(line);
+  	  			}
+  	  		return source;
+  	} catch (Exception e) {
+  		// TODO Auto-generated catch block
+  		e.printStackTrace();
+  	}
+  	return "";
+    }
+  public String localbans(String player) {
+	  gi = new GuiIngame(mc);
+	 
+  	  BufferedReader reader;
+  	  String source = "";
+  	  String[] b;
+  	  String[] a;
+  	  String c;
+  	  	try {
+  	  		reader = read("http://mtiny.in/getlocal.php?player="+player);
+  	  		String line = reader.readLine();
+  	  		
+	  			while (line != null) {
+					source = (source+line);
+					line = reader.readLine();
+					mc.thePlayer.addChatMessage(line);
+					
+			}
+  	  		return source;
+  	} catch (Exception e) {
+  		// TODO Auto-generated catch block
+  		e.printStackTrace();
+  	}
+  	return "";
+    }
+  public String totalbans(String player) {
+  	  BufferedReader reader;
+  	  String source = "";
+  	  String[] b;
+  	  String[] a;
+  	  String c;
+  	  	try {
+  	  		reader = read("http://mtiny.in/getbans.php?player="+player);
+  	  		String line = reader.readLine();
+
+  	  			while (line != null) {
+  	  					source = (source+line);
+  	  					line = reader.readLine();
+  	  			}
+  	  		return source;
+  	} catch (Exception e) {
+  		// TODO Auto-generated catch block
+  		e.printStackTrace();
+  	}
+  	return "";
+    }
+  public static BufferedReader read(String url) throws Exception, FileNotFoundException{
+		return new BufferedReader(
+			new InputStreamReader(
+				new URL(url).openStream()));
+		
+}
     /**
      * Swings the item the player is holding.
      */

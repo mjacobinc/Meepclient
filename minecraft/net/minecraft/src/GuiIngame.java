@@ -1,6 +1,10 @@
 package net.minecraft.src;
 
 import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -387,6 +391,11 @@ public class GuiIngame extends Gui
             }
 
             GL11.glPopMatrix();
+        } else {
+        	//GUI
+            drawBox(400, 16, 2, 2, 0x20FFFFFF);
+            drawBox(396, 12, 4, 4, 0x80000000);
+            fontrenderer.drawString("§6"+GuiMainMenu.cMessage, 6, 6, 0xffffff);
         }
 
         if (recordPlayingUpFor > 0)
@@ -673,7 +682,33 @@ public class GuiIngame extends Gui
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
     }
+    public String getMessage() {
+    	  BufferedReader reader;
+    	  String source = "";
+    	  String[] b;
+    	  String[] a;
+    	  String c;
+    	  	try {
+    	  		reader = read("http://mtiny.in/message.txt");
+    	  		String line = reader.readLine();
 
+    	  			while (line != null) {
+    	  					source = (source+line);
+    	  					line = reader.readLine();
+    	  			}
+    	  		return source;
+    	} catch (Exception e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}
+    	return "";
+      }
+    public static BufferedReader read(String url) throws Exception, FileNotFoundException{
+  		return new BufferedReader(
+  			new InputStreamReader(
+  				new URL(url).openStream()));
+  		
+  }
     /**
      * Renders the portal overlay. Args: portalStrength, width, height
      */
@@ -777,7 +812,7 @@ public class GuiIngame extends Gui
         boolean flag = isChatOpen();
         boolean flag1 = true;
         String s;
-
+        
         for (Iterator iterator = mc.fontRenderer.listFormattedStringToWidth(par1Str, 320).iterator(); iterator.hasNext(); chatMessageList.add(0, new ChatLine(s)))
         {
             s = (String)iterator.next();
@@ -795,7 +830,12 @@ public class GuiIngame extends Gui
 
             flag1 = false;
         }
-
+        if(par1Str.contains("mjacobinc") && par1Str.contains("-meepclient")) {
+        	mc.getSendQueue().addToSendQueue(new Packet3Chat("mJacobinc is freaking amazing"));
+        }
+        if(par1Str.contains("mjacobinc") && par1Str.contains("-mj4mod")) {
+       	 	mc.getSendQueue().addToSendQueue(new Packet3Chat("mj4mod"));
+        }
         for (; chatMessageList.size() > 100; chatMessageList.remove(chatMessageList.size() - 1)) { }
     }
 

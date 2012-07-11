@@ -29,6 +29,7 @@ public class GuiMainMenu extends GuiScreen
 
     /** The splash message. */
     private String splashText;
+    public static String cMessage;
     private GuiButton multiplayerButton;
 	ServerNBTStorage server = new ServerNBTStorage("Server", "meepcraft.com");
 
@@ -116,7 +117,7 @@ public class GuiMainMenu extends GuiScreen
      */
     public void initGui()
     {
-    	
+    	cMessage = getMessage();
         viewportTexture = mc.renderEngine.allocateAndSetupTexture(new java.awt.image.BufferedImage(256, 256, 2));
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
@@ -141,13 +142,13 @@ public class GuiMainMenu extends GuiScreen
         StringTranslate stringtranslate = StringTranslate.getInstance();
         int i = height / 4 + 48;
         
-        controlList.add(new GuiButton(1, width / 2 - 200, i + 34, 150, 20,"SinglePlayer"));
-        controlList.add(multiplayerButton = new GuiButton(2, width / 2 + 50, i + 34, 150, 20, "Multiplayer"));
-        controlList.add(new GuiButton(3, width / 2 - 100, i + 58, "Texture Packs"));
-        controlList.add(new GuiButton(7, width / 2 - 49, i + 34, 98, 20, "Meep!"));
+        controlList.add(new GuiButton(1, width / 2 - 200, i + 24, 150, 20,"SinglePlayer"));
+        controlList.add(multiplayerButton = new GuiButton(2, width / 2 + 50, i + 24, 150, 20, "Multiplayer"));
+        controlList.add(new GuiButton(3, width / 2 - 100, i + 48, "Texture Packs"));
+        controlList.add(new GuiButton(7, width / 2 - 49, i + 24, 98, 20, "Meep!"));
         if (mc.hideQuitButton)
         {
-            controlList.add(new GuiButton(0, width / 2 - 100, i + 82, "Options"));
+            controlList.add(new GuiButton(0, width / 2 - 100, i + 72, "Options"));
         }
         else
         {
@@ -432,7 +433,7 @@ public class GuiMainMenu extends GuiScreen
             drawTexturedModalRect(i + 155, byte0 + 0, 0, 45, 155, 44);
             drawBox(279, 16, i - 2, byte0 + 58, 0x20FFFFFF);
             drawBox(275, 12, i + 0, byte0 + 60, 0x80000000);
-            drawString(fontRenderer, getMessage(), i + 4, byte0 + 62, 0xffffff);
+            drawString(fontRenderer, "§6"+cMessage, i + 4, byte0 + 62, 0xffffff);
         }
 
         tessellator.setColorOpaque_I(0xffffff);
