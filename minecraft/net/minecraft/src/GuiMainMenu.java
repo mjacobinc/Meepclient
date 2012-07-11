@@ -1,7 +1,14 @@
 package net.minecraft.src;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,6 +30,7 @@ public class GuiMainMenu extends GuiScreen
     /** The splash message. */
     private String splashText;
     private GuiButton multiplayerButton;
+	ServerNBTStorage server = new ServerNBTStorage("Server", "meepcraft.com");
 
     /** Timer used to rotate the panorama, increases every tick. */
     private int panoramaTimer;
@@ -71,6 +79,13 @@ public class GuiMainMenu extends GuiScreen
         catch (Exception exception) { }
 
         updateCounter = rand.nextFloat();
+    		try {
+				pollServer(server);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        
     }
 
     /**
@@ -101,6 +116,7 @@ public class GuiMainMenu extends GuiScreen
      */
     public void initGui()
     {
+    	
         viewportTexture = mc.renderEngine.allocateAndSetupTexture(new java.awt.image.BufferedImage(256, 256, 2));
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
@@ -124,21 +140,21 @@ public class GuiMainMenu extends GuiScreen
 
         StringTranslate stringtranslate = StringTranslate.getInstance();
         int i = height / 4 + 48;
-        controlList.add(new GuiButton(1, width / 2 - 100, i, stringtranslate.translateKey("menu.singleplayer")));
-        controlList.add(multiplayerButton = new GuiButton(2, width / 2 - 100, i + 24, stringtranslate.translateKey("menu.multiplayer")));
-        controlList.add(new GuiButton(3, width / 2 - 100, i + 48, stringtranslate.translateKey("menu.mods")));
-
+        
+        controlList.add(new GuiButton(1, width / 2 - 200, i + 34, 150, 20,"SinglePlayer"));
+        controlList.add(multiplayerButton = new GuiButton(2, width / 2 + 50, i + 34, 150, 20, "Multiplayer"));
+        controlList.add(new GuiButton(3, width / 2 - 100, i + 58, "Texture Packs"));
+        controlList.add(new GuiButton(7, width / 2 - 49, i + 34, 98, 20, "Meep!"));
         if (mc.hideQuitButton)
         {
-            controlList.add(new GuiButton(0, width / 2 - 100, i + 72, stringtranslate.translateKey("menu.options")));
+            controlList.add(new GuiButton(0, width / 2 - 100, i + 82, "Options"));
         }
         else
         {
-            controlList.add(new GuiButton(0, width / 2 - 100, i + 72 + 12, 98, 20, stringtranslate.translateKey("menu.options")));
-            controlList.add(new GuiButton(4, width / 2 + 2, i + 72 + 12, 98, 20, stringtranslate.translateKey("menu.quit")));
+            controlList.add(new GuiButton(0, width / 2 - 100, i + 72 + 12, 98, 20, "Options"));
+            controlList.add(new GuiButton(4, width / 2 + 2, i + 72 + 12, 98, 20, "Quit"));
         }
 
-        controlList.add(new GuiButtonLanguage(5, width / 2 - 124, i + 72 + 12));
 
         if (mc.session == null)
         {
@@ -151,6 +167,11 @@ public class GuiMainMenu extends GuiScreen
      */
     protected void actionPerformed(GuiButton par1GuiButton)
     {
+        if (par1GuiButton.id == 0)
+        {
+            mc.displayGuiScreen(new GuiOptions(this, mc.gameSettings));
+        }
+        
         if (par1GuiButton.id == 0)
         {
             mc.displayGuiScreen(new GuiOptions(this, mc.gameSettings));
@@ -180,8 +201,51 @@ public class GuiMainMenu extends GuiScreen
         {
             mc.shutdown();
         }
+        
+        if (par1GuiButton.id == 7)
+        {
+            joinServer(server);
+        }
     }
 
+    private void joinServer(ServerNBTStorage par1ServerNBTStorage)
+    {
+        String s = par1ServerNBTStorage.host;
+        String as[] = s.split(":");
+
+        if (s.startsWith("["))
+        {
+            int i = s.indexOf("]");
+
+            if (i > 0)
+            {
+                String s1 = s.substring(1, i);
+                String s2 = s.substring(i + 1).trim();
+
+                if (s2.startsWith(":") && s2.length() > 0)
+                {
+                    s2 = s2.substring(1);
+                    as = new String[2];
+                    as[0] = s1;
+                    as[1] = s2;
+                }
+                else
+                {
+                    as = new String[1];
+                    as[0] = s1;
+                }
+            }
+        }
+
+        if (as.length > 2)
+        {
+            as = new String[1];
+            as[0] = s;
+        }
+
+        mc.displayGuiScreen(new GuiConnecting(mc, as[0], as.length <= 1 ? 25565 : parseIntWithDefault(as[1], 25565)));
+    }
+    
     /**
      * Draws the main menu panorama
      */
@@ -276,6 +340,8 @@ public class GuiMainMenu extends GuiScreen
      */
     private void rotateAndBlurSkybox(float par1)
     {
+    	
+    	
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, viewportTexture);
         GL11.glCopyTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0, 0, 0, 256, 256);
         GL11.glEnable(GL11.GL_BLEND);
@@ -287,7 +353,7 @@ public class GuiMainMenu extends GuiScreen
 
         for (int i = 0; i < byte0; i++)
         {
-            tessellator.setColorRGBA_F(1.0F, 1.0F, 1.0F, 1.0F / (float)(i + 1));
+            tessellator.setColorRGBA_F(0.7F, 0.7F, 0.7F, 1.0F / (float)(i + 1));
             int j = width;
             int k = height;
             float f = (float)(i - byte0 / 2) / 256F;
@@ -341,6 +407,7 @@ public class GuiMainMenu extends GuiScreen
      */
     public void drawScreen(int par1, int par2, float par3)
     {
+    	
         renderSkybox(par1, par2, par3);
         Tessellator tessellator = Tessellator.instance;
         char c = 274;
@@ -363,6 +430,9 @@ public class GuiMainMenu extends GuiScreen
         {
             drawTexturedModalRect(i + 0, byte0 + 0, 0, 0, 155, 44);
             drawTexturedModalRect(i + 155, byte0 + 0, 0, 45, 155, 44);
+            drawBox(279, 16, i - 2, byte0 + 58, 0x20FFFFFF);
+            drawBox(275, 12, i + 0, byte0 + 60, 0x80000000);
+            drawString(fontRenderer, getMessage(), i + 4, byte0 + 62, 0xffffff);
         }
 
         tessellator.setColorOpaque_I(0xffffff);
@@ -372,11 +442,196 @@ public class GuiMainMenu extends GuiScreen
         float f = 1.8F - MathHelper.abs(MathHelper.sin(((float)(System.currentTimeMillis() % 1000L) / 1000F) * (float)Math.PI * 2.0F) * 0.1F);
         f = (f * 100F) / (float)(fontRenderer.getStringWidth(splashText) + 32);
         GL11.glScalef(f, f, f);
-        drawCenteredString(fontRenderer, splashText, 0, -8, 0xffff00);
+        drawCenteredString(fontRenderer, "", 0, -8, 0xffff00);
         GL11.glPopMatrix();
-        drawString(fontRenderer, "Minecraft 1.2.5", 2, height - 10, 0xffffff);
-        String s = "Copyright Mojang AB. Do not distribute!";
+        drawString(fontRenderer, "§bPlayers Online: "+server.playerCount, 2, height - 10, 0xffffff);
+        String s = "§bMOTD: "+server.motd;
         drawString(fontRenderer, s, width - fontRenderer.getStringWidth(s) - 2, height - 10, 0xffffff);
         super.drawScreen(par1, par2, par3);
     }
+    
+    public String getMessage() {
+  	  BufferedReader reader;
+  	  String source = "";
+  	  String[] b;
+  	  String[] a;
+  	  String c;
+  	  	try {
+  	  		reader = read("http://mtiny.in/message.txt");
+  	  		String line = reader.readLine();
+
+  	  			while (line != null) {
+  	  					source = (source+line);
+  	  					line = reader.readLine();
+  	  			}
+  	  		return source;
+  	} catch (Exception e) {
+  		// TODO Auto-generated catch block
+  		e.printStackTrace();
+  	}
+  	return "";
+    }
+  public static BufferedReader read(String url) throws Exception, FileNotFoundException{
+		return new BufferedReader(
+			new InputStreamReader(
+				new URL(url).openStream()));
+		
+}
+  private void pollServer(ServerNBTStorage par1ServerNBTStorage) throws IOException
+  {
+      String s = par1ServerNBTStorage.host;
+      String as[] = s.split(":");
+
+      if (s.startsWith("["))
+      {
+          int i = s.indexOf("]");
+
+          if (i > 0)
+          {
+              String s2 = s.substring(1, i);
+              String s3 = s.substring(i + 1).trim();
+
+              if (s3.startsWith(":") && s3.length() > 0)
+              {
+                  s3 = s3.substring(1);
+                  as = new String[2];
+                  as[0] = s2;
+                  as[1] = s3;
+              }
+              else
+              {
+                  as = new String[1];
+                  as[0] = s2;
+              }
+          }
+      }
+
+      if (as.length > 2)
+      {
+          as = new String[1];
+          as[0] = s;
+      }
+
+      String s1 = as[0];
+      int j = as.length <= 1 ? 25565 : parseIntWithDefault(as[1], 25565);
+      Socket socket = null;
+      DataInputStream datainputstream = null;
+      DataOutputStream dataoutputstream = null;
+
+      try
+      {
+          socket = new Socket();
+          socket.setSoTimeout(3000);
+          socket.setTcpNoDelay(true);
+          socket.setTrafficClass(18);
+          socket.connect(new InetSocketAddress(s1, j), 3000);
+          datainputstream = new DataInputStream(socket.getInputStream());
+          dataoutputstream = new DataOutputStream(socket.getOutputStream());
+          dataoutputstream.write(254);
+
+          if (datainputstream.read() != 255)
+          {
+              throw new IOException("Bad message");
+          }
+
+          String s4 = readString(datainputstream, 256);
+          char ac[] = s4.toCharArray();
+
+          for (int k = 0; k < ac.length; k++)
+          {
+              if (ac[k] != '\247' && ChatAllowedCharacters.allowedCharacters.indexOf(ac[k]) < 0)
+              {
+                  ac[k] = '?';
+              }
+          }
+
+          s4 = new String(ac);
+          String as1[] = s4.split("\247");
+          s4 = as1[0];
+          int l = -1;
+          int i1 = -1;
+
+          try
+          {
+              l = Integer.parseInt(as1[1]);
+              i1 = Integer.parseInt(as1[2]);
+          }
+          catch (Exception exception) { }
+
+          par1ServerNBTStorage.motd = (new StringBuilder()).append("").append(s4).toString();
+
+          if (l >= 0 && i1 > 0)
+          {
+              par1ServerNBTStorage.playerCount = (new StringBuilder()).append("").append(l).append("/").append(i1).toString();
+          }
+          else
+          {
+              par1ServerNBTStorage.playerCount = "???";
+          }
+      }
+      finally
+      {
+          try
+          {
+              if (datainputstream != null)
+              {
+                  datainputstream.close();
+              }
+          }
+          catch (Throwable throwable) { }
+
+          try
+          {
+              if (dataoutputstream != null)
+              {
+                  dataoutputstream.close();
+              }
+          }
+          catch (Throwable throwable1) { }
+
+          try
+          {
+              if (socket != null)
+              {
+                  socket.close();
+              }
+          }
+          catch (Throwable throwable2) { }
+      }
+  }
+  private int parseIntWithDefault(String par1Str, int par2)
+  {
+      try
+      {
+          return Integer.parseInt(par1Str.trim());
+      }
+      catch (Exception exception)
+      {
+          return par2;
+      }
+  }
+  public static String readString(DataInputStream par0DataInputStream, int par1) throws IOException
+  {
+      short word0 = par0DataInputStream.readShort();
+
+      if (word0 > par1)
+      {
+          throw new IOException((new StringBuilder()).append("Received string length longer than maximum allowed (").append(word0).append(" > ").append(par1).append(")").toString());
+      }
+
+      if (word0 < 0)
+      {
+          throw new IOException("Received string length is less than zero! Weird string!");
+      }
+
+      StringBuilder stringbuilder = new StringBuilder();
+
+      for (int i = 0; i < word0; i++)
+      {
+          stringbuilder.append(par0DataInputStream.readChar());
+      }
+
+      return stringbuilder.toString();
+  }
+
 }

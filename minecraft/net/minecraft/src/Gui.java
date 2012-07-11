@@ -22,6 +22,34 @@ public class Gui
 
         drawRect(par1, par3, par2 + 1, par3 + 1, par4);
     }
+    
+    public static void drawBox(int i, int i1, int i2, int i3, int i4) {
+        float f = (float) (i4 >> 16 & 0xff) / 255F;
+        float f1 = (float) (i4 >> 8 & 0xff) / 255F;
+        float f2 = (float) (i4 & 0xff) / 255F;
+        float f3 = (float) (i4 >> 24 & 0xff) / 255F;
+        if (f3 == 0.0F)
+                f3 = 1.0F;
+
+GL11.glPushMatrix();
+Tessellator tessellator = Tessellator.instance;
+GL11.glEnable(GL11.GL_BLEND);
+GL11.glDisable(GL11.GL_TEXTURE_2D);
+GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+GL11.glColor4f(f, f1, f2, f3);
+
+tessellator.startDrawingQuads();
+tessellator.addVertex(i2, i1 + i3, 0.0D);
+tessellator.addVertex(i2 + i, i1 + i3, 0.0D);
+tessellator.addVertex(i2 + i, i3, 0.0D);
+tessellator.addVertex(i2, i3, 0.0D);
+tessellator.draw();
+
+GL11.glEnable(GL11.GL_TEXTURE_2D);
+GL11.glDisable(GL11.GL_BLEND);
+GL11.glPopMatrix();
+}
+
 
     protected void drawVerticalLine(int par1, int par2, int par3, int par4)
     {

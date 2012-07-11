@@ -47,6 +47,8 @@ public class GuiButton extends Gui
         height = par5;
         displayString = par6Str;
     }
+    
+    
 
     /**
      * Returns 0 if the button is disabled, 1 if the mouse is NOT hovering over this button and 2 if it IS hovering over
@@ -80,7 +82,7 @@ public class GuiButton extends Gui
 
         FontRenderer fontrenderer = par1Minecraft.fontRenderer;
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, par1Minecraft.renderEngine.getTexture("/gui/gui.png"));
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glColor4f(0.5F, 0.5F, 0.5F, 1F);
         boolean flag = par2 >= xPosition && par3 >= yPosition && par2 < xPosition + width && par3 < yPosition + height;
         int i = getHoverState(flag);
         drawTexturedModalRect(xPosition, yPosition, 0, 46 + i * 20, width / 2, height);
